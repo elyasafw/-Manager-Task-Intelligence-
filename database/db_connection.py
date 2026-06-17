@@ -10,8 +10,8 @@ class  DB_connection:
     def connect(self):
         self.conn = mysql.connector.connect(
             host = "localhost",
-            user = "intelligence-mysql",
-            password = "12340",
+            user = "root",
+            password = "1234",
             database = "Intelligence_db",
             port = 3306
             )
@@ -24,8 +24,8 @@ class  DB_connection:
     def create_db(self):
         conn = mysql.connector.connect(
             host = "localhost",
-            user = "intelligence-mysql",
-            password = "12340",
+            user = "root",
+            password = "1234",
             port = 3306
             )
         with conn.cursor() as cursor:
@@ -41,7 +41,7 @@ class  DB_connection:
                 is_active BOOLEAN DEFAULT TRUE,
                 completed_missions INT DEFAULT 0,
                 failed_missions INT DEFAULT 0,
-                agent_rank ENUM(Junior / Senior / Commander)
+                agent_rank ENUM('junior', 'senior', 'commander')
                 )
         """
         query_missions_table = """
@@ -51,7 +51,7 @@ class  DB_connection:
                 description TEXT,
                 location VARCHAR(50),
                 difficulty INT CHECK(difficulty BETWEEN 1 AND 10),
-                importance CHECK(difficulty BETWEEN 1 AND 10),
+                importance INT CHECK(importance BETWEEN 1 AND 10),
                 status VARCHAR(30) DEFAULT 'NEW',
                 risk_level VARCHAR(30),
                 assigned_agent_id INT DEFAULT NULL
@@ -59,7 +59,9 @@ class  DB_connection:
         """
         with self.conn.cursor() as cursor:
             cursor.execute(query_agents_table)
+            print("Agents table ready")
             cursor.execute(query_missions_table)
+            print("Missions table ready")
 
 
 db = DB_connection()

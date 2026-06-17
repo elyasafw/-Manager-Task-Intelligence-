@@ -28,7 +28,7 @@ INT PK AUTO_INCREMENT | VARCHAR(50) | VARCHAR(50) | BOOLEAN DEFAULT TRUE | INT D
 ### טבלת missions:  
 id | title | description | location | difficulty | importance | status | risk_level | assigned_agent_id
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-INT PK AUTO_INCREMENT | VARCHAR(100) | TEXT | VARCHAR(50) | INT CHECK(difficulty BETWEEN 1 AND 10) | INT CHECK(difficulty BETWEEN 1 AND 10) | VARCHAR(30) DEFAULT NEW | VARCHAR(30) | INT DEFAULT NULL  
+INT PK AUTO_INCREMENT | VARCHAR(100) | TEXT | VARCHAR(50) | INT CHECK(difficulty BETWEEN 1 AND 10) | INT CHECK(difficulty BETWEEN 1 AND 10) | VARCHAR(30) DEFAULT 'NEW' | VARCHAR(30) | INT DEFAULT NULL  
 
 ## חוקי המערכת:  
 1.	שדה rank חייב להיות Junior / Senior / Commander — כל ערך אחר זורק שגיאה.
@@ -62,7 +62,7 @@ update_agent(id, data) | UPDATE לכל השורה (אין אפשרות לשנו�
 deactivate_agent(id) | מגדירה מצב סוכן ללא פעיל
 increment_completed(id) | מעדכן את כמות המשימות שהושלמו 
 increment_failed(id) | מעדכן את כמות המשימות שנכשלו
-get_agent_performance(id) | מחזירה מילון עם המפתחות: completed, failed, total, success_rate
+get_agent_performance(id) | מחזירה מילון עם המפתחות: completed, failed, total_success_rate
 count_active_agents() | מחזירה את מספר הסוכנים הפעילים 
 
 ### מחלקת MissionDB:  

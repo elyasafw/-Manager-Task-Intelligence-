@@ -1,4 +1,4 @@
-from .db_connection import db
+from db_connection import db
 from pydantic import BaseModel
 
 
@@ -15,7 +15,7 @@ class UpdateAgent(BaseModel):
 
 # Temporary utility functions
 def validation_rank(data: dict):
-    if data["agent_rank"].lower() not in ["junior, senior, commander"]:
+    if data["agent_rank"].lower() not in ["junior", "senior", "commander"]:
         print("The 'agent_rank' field must only be: Junior / Senior / Commander")
         return False
     return True
@@ -27,7 +27,11 @@ class AgentDB:
         new_agent = data.model_dump()
         if not validation_rank(new_agent):
             return
-        values = [new_agent["name"], new_agent["specialty"], new_agent["agent_rank"]]
+        values = [
+            new_agent["name"],
+            new_agent["specialty"],
+            new_agent["agent_rank"]
+            ]
         conn = db.get_connection()
         query = """INSERT INTO agents (name, specialty, agent_rank)
             VALUES (%s, %s, %s)"""
@@ -36,7 +40,8 @@ class AgentDB:
             conn.commit()
             if not cursor.rowcount > 0:
                 return "Creating a new agent failed..."
-            return {"name": data[0], "specialty": data[1], "agent_rank": data[2]}
+            return new_agent
+
 
     def get_all_agents(self):
         conn = db.get_connection()
@@ -49,7 +54,7 @@ class AgentDB:
 
     def get_agent_by_id(self, id):
         conn = db.get_connection()
-        query = "ELECT * FROM agents WHERE id = %s"
+        query = "SELECT * FROM agents WHERE id = %s"
         with conn.cursor(dictionary=True) as cursor:
             cursor.execute(query, [id])
             agent = cursor.fetchone()
@@ -65,7 +70,7 @@ class AgentDB:
         columns = [f"{column} = %s" for column in list(update_agent.keys())]
         values = list(update_agent.values())+ [id]
         query = f"""UPDATE agents
-            SET ({", ".join(columns)}) WHERE id = %s"""
+            SET {", ".join(columns)} WHERE id = %s"""
         conn = db.get_connection()
         with conn.cursor() as cursor:
             cursor.execute(query, values)
@@ -88,7 +93,7 @@ class AgentDB:
     def increment_completed(self, id):
         conn=  db.get_connection()
         query = """UPDATE agents
-            SET completed_missions += 1 WHERE id = %s"""
+            SET completed_missions = completed_missions + 1 WHERE id = %s"""
         with conn.cursor() as cursor:
             cursor.execute(query, [id])
             conn.commit()
@@ -99,7 +104,7 @@ class AgentDB:
     def increment_failed(self, id):
         conn=  db.get_connection()
         query = """UPDATE agents
-            SET failed_missions += 1 WHERE id = %s"""
+            SET failed_missions = failed_missions + 1 WHERE id = %s"""
         with conn.cursor() as cursor:
             cursor.execute(query, [id])
             conn.commit()
@@ -118,6 +123,12 @@ class AgentDB:
         agent_performance = {
             "completed": agent["completed_missions"],
             "failed": agent["failed_missions"],
-            "total, success_rate": total_success
+            "total_success_rate": round(total_success, 3)
             }
-        return agent_performance()
+        return agent_performance
+
+
+
+agents_manager = AgentDB()
+
+agent = UpdateAgent(agent_rank="Junior")

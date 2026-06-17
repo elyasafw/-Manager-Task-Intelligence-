@@ -52,7 +52,7 @@ class  DB_connection:
                 location VARCHAR(50),
                 difficulty INT CHECK(difficulty BETWEEN 1 AND 10),
                 importance CHECK(difficulty BETWEEN 1 AND 10),
-                status VARCHAR(30) DEFAULT NEW,
+                status VARCHAR(30) DEFAULT 'NEW',
                 risk_level VARCHAR(30),
                 assigned_agent_id INT DEFAULT NULL
                 )

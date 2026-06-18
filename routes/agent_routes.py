@@ -19,8 +19,7 @@ class UpdateAgent(BaseModel):
 agent_router = APIRouter()
 
 
-@agent_router.get("/agents")
-@agent_router.post("/agents")
+@agent_router.post("/agents", status_code=status.HTTP_201_CREATED)
 def create_new_agent(new_agent: NewAgent):
     agent = new_agent.model_dump()
     if not validation_rank(agent):
@@ -41,6 +40,7 @@ def create_new_agent(new_agent: NewAgent):
             )
     return agent
 
+@agent_router.get("/agents")
 def get_all_agents():
     logger.info("GET /agents called for getting all agents")
     all_agents = agents_manager.get_all_agents()

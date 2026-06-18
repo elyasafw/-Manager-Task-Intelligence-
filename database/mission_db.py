@@ -33,19 +33,6 @@ class MissionDB:
         return mission
 
     def assign_mission(self, m_id, a_id):
-        mission = self.get_mission_by_id(m_id)
-        if not mission:
-            return f"Mission ID: {m_id} not found"
-        elif mission["status"] != "NEW":
-            return f"Mission ID: {m_id} is already assigned to another agent"
-        elif mission["risk_level"] == "CRITICAL":
-            agent = agents_manager.get_agent_by_id(a_id)
-            if not agent:
-                return f"Agent ID: {a_id} not found"
-            elif agent["agent_rank"] != "commander":
-                return "A critical level mission can only be assigned to a Commander-level agent"
-            elif not  agent["is_active"]:
-                return f"Agent ID: {a_id} is deactivated"
         query = """UPDATE missions
             SET status = 'ASSIGNED', assigned_agent_id = %s
             WHERE id = %s"""
@@ -53,35 +40,16 @@ class MissionDB:
         with conn.cursor() as cursor:
             cursor.execute(query, [a_id, m_id])
             conn.commit()
-            if not cursor.rowcount > 0:
-                return f"Assignment of mission ID: {m_id} to agent ID: {a_id} failed"
-            return f"Mission ID: {m_id} was successfully assigned to Agent ID: {a_id}"
+            return cursor.rowcount > 0
 
     def update_mission_status(self, id, status):
-        mission = self.get_mission_by_id(id)
-        if not mission:
-            return f"Mission ID: {id} not found"
-        if status.upper() == "IN_PROGRESS":
-            if mission["status"] !="ASSIGNED":
-                return f"Mission ID: {id} not yet assigned or already in progress"
-        elif status.upper() in ["COMPLETED", "FAILED"]:
-            if mission["status"] != "IN_PROGRESS":
-                return f"Mission ID: {id} not yet in progress or cancelled"
-        elif status.upper() == "CANCELLED":
-            if mission["status"] not in ["NEW", "ASSIGNED"]:
-                return f"Mission ID: {id} already in progress / completed / failed"
-        elif status.upper() == "ASSIGNED":
-            if mission["status"] == "NEW":
-                return "Cannot assign a mission without an agent ID."
         query = """UPDATE missions
             SET status = %s WHERE id = %s"""
         conn = db.get_connection()
         with conn.cursor() as cursor:
             cursor.execute(query, [status, id])
             conn.commit()
-            if not cursor.rowcount > 0:
-                return f"Change mission Status ID: {id} failed"
-            return f"Change mission Status ID: {id} Updated Successfully"
+            return cursor.rowcount > 0
 
     def get_open_missions_by_agent(self, id):
         conn = db.get_connection()
@@ -92,7 +60,7 @@ class MissionDB:
             cursor.execute(query, [id])
             all_open_missions = cursor.fetchall()
             if not all_open_missions:
-                return f"Agent ID: {id} No open missions"
+                return []
             return all_open_missions
 
     def count_all_missions(self):

@@ -58,9 +58,7 @@ class AgentDB:
         with conn.cursor() as cursor:
             cursor.execute(query, [id])
             conn.commit()
-            if not cursor.rowcount > 0:
-                return f"Updating completed missions of Agent ID: {id} failed..."
-            return f"Agent ID: {id} Added 1 mission successfully completed"
+            return cursor.rowcount > 0
 
     def increment_failed(self, id):
         conn=  db.get_connection()
@@ -69,9 +67,7 @@ class AgentDB:
         with conn.cursor() as cursor:
             cursor.execute(query, [id])
             conn.commit()
-            if not cursor.rowcount > 0:
-                return f"Updating failed missions of Agent ID: {id} failed..."
-            return f"Agent ID: {id} Added 1 failed mission successfully"
+            return cursor.rowcount > 0
 
     def get_agent_performance(self, id):
         agent = self.get_agent_by_id(id)

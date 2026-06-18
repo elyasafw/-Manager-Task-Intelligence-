@@ -1,4 +1,5 @@
 from db_connection import db
+from mission_db import missions_manager
 from logs.logger_config import logger
     
 
@@ -76,7 +77,8 @@ class AgentDB:
         agent = self.get_agent_by_id(id)
         if not agent:
             return None
-        total_rate = agent["completed_missions"] + agent["failed_missions"]
+        open_missions_agent = len(missions_manager.get_open_missions_by_agent(id))
+        total_rate = agent["completed_missions"] + agent["failed_missions"] + open_missions_agent
         total_success = 0
         if agent["completed_missions"] + agent["failed_missions"] > 0:
             total_success = (agent["completed_missions"] / total_rate) * 100

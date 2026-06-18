@@ -1,5 +1,5 @@
 from db_connection import db
-from agent_db import agents_manager
+from logs.logger_config import logger
 
 
 class MissionDB:
@@ -9,6 +9,7 @@ class MissionDB:
         query = """INSERT INTO missions (title, description, location, difficulty, importance, risk_level)
             VALUES (%s, %s, %s , %s, %s, %s)"""
         with conn.cursor() as cursor:
+            logger.info("SQL query sent to create a new mission")
             cursor.execute(query, data)
             conn.commit()
             return cursor.rowcount > 0
@@ -28,9 +29,7 @@ class MissionDB:
         with conn.cursor(dictionary=True) as cursor:
             cursor.execute(query, [id])
             mission = cursor.fetchone()
-        if not mission:
-            return None
-        return mission
+            return mission
 
     def assign_mission(self, m_id, a_id):
         query = """UPDATE missions
@@ -38,6 +37,7 @@ class MissionDB:
             WHERE id = %s"""
         conn = db.get_connection()
         with conn.cursor() as cursor:
+            logger.info(f"SQL query sent to assign mission to agent ID: {a_id}")
             cursor.execute(query, [a_id, m_id])
             conn.commit()
             return cursor.rowcount > 0
@@ -47,6 +47,7 @@ class MissionDB:
             SET status = %s WHERE id = %s"""
         conn = db.get_connection()
         with conn.cursor() as cursor:
+            logger.info(f"SQL query sent to update status mission ID: {id}")
             cursor.execute(query, [status, id])
             conn.commit()
             return cursor.rowcount > 0
@@ -57,10 +58,13 @@ class MissionDB:
             WHERE assigned_agent_id = %s AND (status = 'ASSIGNED' OR status = 'IN_PROGRESS')"""
         conn = db.get_connection()
         with conn.cursor(dictionary=True) as cursor:
+            logger.info(f"SQL query sent to get open missions of agent ID: {id}")
             cursor.execute(query, [id])
             all_open_missions = cursor.fetchall()
             if not all_open_missions:
+                logger.info(f"Not found open missions for agent ID: {id}")
                 return []
+            logger.info(f"Getting open missions list for agent ID: {id}")
             return all_open_missions
 
     def count_all_missions(self):

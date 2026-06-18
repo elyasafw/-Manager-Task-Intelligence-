@@ -1,4 +1,5 @@
 from db_connection import db
+from logs.logger_config import logger
     
 
 class AgentDB:
@@ -8,6 +9,7 @@ class AgentDB:
         query = """INSERT INTO agents (name, specialty, agent_rank)
             VALUES (%s, %s, %s)"""
         with conn.cursor() as cursor:
+            logger.info("SQL query sent to create a new agent")
             cursor.execute(query, data)
             conn.commit()
             return cursor.rowcount > 0
@@ -18,6 +20,7 @@ class AgentDB:
             cursor.execute("SELECT * FROM agents")
             all_agents = cursor.fetchall()
         if not all_agents:
+            logger.warning("Agents list is empty")
             return []
         return all_agents
 
@@ -27,9 +30,7 @@ class AgentDB:
         with conn.cursor(dictionary=True) as cursor:
             cursor.execute(query, [id])
             agent = cursor.fetchone()
-        if not agent:
-            return None
-        return agent
+            return agent
 
     def update_agent(self, id, data):
         columns = [f"{column} = %s" for column in list(data.keys())]
@@ -38,6 +39,7 @@ class AgentDB:
             SET {", ".join(columns)} WHERE id = %s"""
         conn = db.get_connection()
         with conn.cursor() as cursor:
+            logger.info(f"SQL query sent to update agent ID: {id}")
             cursor.execute(query, values)
             conn.commit()
             return cursor.rowcount > 0
@@ -47,6 +49,7 @@ class AgentDB:
         query = """UPDATE agents
             SET is_active = FALSE WHERE id = %s"""
         with conn.cursor() as cursor:
+            logger.info(f"SQL query sent to deactivate agent ID: {id}")
             cursor.execute(query, [id])
             conn.commit()
             return cursor.rowcount > 0
@@ -86,9 +89,11 @@ class AgentDB:
 
     def count_active_agents(self):
         conn = db.get_connection()
-        with conn.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT * FROM agents WHERE is_active = TRUE")
-            all_active_agents = cursor.fetchall()
-            return all_active_agents
+        query = """SELECT COUNT(*) FROM agents
+            WHERE is_active = TRUE"""
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            all_active_agents = cursor.fetchone()
+            return all_active_agents[0] if all_active_agents else 0
 
 agents_manager = AgentDB()

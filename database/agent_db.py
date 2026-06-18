@@ -1,47 +1,16 @@
 from db_connection import db
-from pydantic import BaseModel
-
-
-class NewAgent(BaseModel):
-    name : str
-    specialty : str
-    agent_rank : str
-
-class UpdateAgent(BaseModel):
-    name : str | None = None
-    specialty : str | None = None
-    agent_rank : str | None = None
-
-
-# Temporary utility functions
-def validation_rank(data: dict):
-    if data["agent_rank"].lower() not in ["junior", "senior", "commander"]:
-        print("The 'agent_rank' field must only be: Junior / Senior / Commander")
-        return False
-    return True
     
 
 class AgentDB:
 
-    def create_agent(self, data: NewAgent):
-        new_agent = data.model_dump()
-        if not validation_rank(new_agent):
-            return
-        values = [
-            new_agent["name"],
-            new_agent["specialty"],
-            new_agent["agent_rank"]
-            ]
+    def create_agent(self, data):
         conn = db.get_connection()
         query = """INSERT INTO agents (name, specialty, agent_rank)
             VALUES (%s, %s, %s)"""
         with conn.cursor() as cursor:
-            cursor.execute(query, values)
+            cursor.execute(query, data)
             conn.commit()
-            if not cursor.rowcount > 0:
-                return "Creating a new agent failed..."
-            return new_agent
-
+            return cursor.rowcount > 0
 
     def get_all_agents(self):
         conn = db.get_connection()
@@ -62,22 +31,16 @@ class AgentDB:
             return None
         return agent
 
-    def update_agent(self, id, data: UpdateAgent):
-        update_agent = data.model_dump(exclude_none=True)
-        if "agent_rank" in update_agent:
-            if not validation_rank(update_agent):
-                return
-        columns = [f"{column} = %s" for column in list(update_agent.keys())]
-        values = list(update_agent.values())+ [id]
+    def update_agent(self, id, data):
+        columns = [f"{column} = %s" for column in list(data.keys())]
+        values = list(data.values())+ [id]
         query = f"""UPDATE agents
             SET {", ".join(columns)} WHERE id = %s"""
         conn = db.get_connection()
         with conn.cursor() as cursor:
             cursor.execute(query, values)
             conn.commit()
-            if not cursor.rowcount > 0:
-                return f"Agent ID: {id} update failed..."
-            return f"Agent ID: {id} successfully updated"
+            return cursor.rowcount > 0
 
     def deactivate_agent(self, id):
         conn=  db.get_connection()
@@ -86,9 +49,7 @@ class AgentDB:
         with conn.cursor() as cursor:
             cursor.execute(query, [id])
             conn.commit()
-            if not cursor.rowcount > 0:
-                return f"Agent ID: {id} deactivate failed..."
-            return f"Agent ID: {id} successfully deactivated"
+            return cursor.rowcount > 0
 
     def increment_completed(self, id):
         conn=  db.get_connection()
@@ -115,7 +76,7 @@ class AgentDB:
     def get_agent_performance(self, id):
         agent = self.get_agent_by_id(id)
         if not agent:
-            return f"Agent ID: {id} not found"
+            return None
         total_rate = agent["completed_missions"] + agent["failed_missions"]
         total_success = 0
         if agent["completed_missions"] + agent["failed_missions"] > 0:

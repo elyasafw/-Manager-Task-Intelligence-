@@ -1,57 +1,17 @@
 from db_connection import db
 from agent_db import agents_manager
-from pydantic import BaseModel
-
-
-class NewMission(BaseModel):
-    title : str
-    description : str
-    location : str
-    difficulty : int
-    importance : int
-
-
-# Temporary utility functions
-def validation_difficulty_importance(data: dict):
-    if (data["difficulty"] < 1 or data["difficulty"] > 10) or (data["importance"] < 1 or data["importance"] > 10):
-        print("The 'difficulty' and 'importance' fields must be in the range of 1-10")
-        return False
-    return True
-
-def calculate_risk_level(difficulty, importance):
-    result = difficulty * 2 + importance
-    risk_level = ""
-    if 0 <= result < 9: risk_level = "LOW"
-    elif 10 <= result < 17: risk_level = "MEDIUM"
-    elif 18 <= result < 24: risk_level = "HIGH"
-    else: risk_level = "CRITICAL"
-    return risk_level
 
 
 class MissionDB:
 
-    def create_mission(self, data: NewMission):
-        new_mission = data.model_dump()
-        if not validation_difficulty_importance(new_mission):
-            return
-        risk_level = calculate_risk_level(new_mission["difficulty"], new_mission["importance"])
-        values = [
-            new_mission["title"],
-            new_mission["description"],
-            new_mission["location"],
-            new_mission["difficulty"],
-            new_mission["importance"],
-            risk_level
-            ]
+    def create_mission(self, data):
         conn = db.get_connection()
         query = """INSERT INTO missions (title, description, location, difficulty, importance, risk_level)
             VALUES (%s, %s, %s , %s, %s, %s)"""
         with conn.cursor() as cursor:
-            cursor.execute(query, values)
+            cursor.execute(query, data)
             conn.commit()
-            if not cursor.rowcount > 0:
-                return "Creating a new mission failed..."
-            return new_mission
+            return cursor.rowcount > 0
 
     def get_all_missions(self):
         conn = db.get_connection()
@@ -179,3 +139,6 @@ class MissionDB:
             cursor.execute(query)
             top_agent= cursor.fetchone()
         return top_agent
+
+
+missions_manager=  MissionDB()

@@ -126,7 +126,7 @@ class MissionDB:
     def get_open_missions_by_agent(self, id):
         conn = db.get_connection()
         query = """SELECT * FROM missions
-            WHERE id = %s AND (status = 'ASSIGNED' OR status = 'IN_PROGRESS')"""
+            WHERE assigned_agent_id = %s AND (status = 'ASSIGNED' OR status = 'IN_PROGRESS')"""
         conn = db.get_connection()
         with conn.cursor(dictionary=True) as cursor:
             cursor.execute(query, [id])
@@ -164,7 +164,7 @@ class MissionDB:
     def count_critical_missions(self):
         conn = db.get_connection()
         query = """SELECT COUNT(*) FROM missions
-            WHERE status = 'CRITICAL'"""
+            WHERE risk_level = 'CRITICAL'"""
         with conn.cursor() as cursor:
             cursor.execute(query)
             critical_missions = cursor.fetchone()
@@ -172,25 +172,10 @@ class MissionDB:
 
     def get_top_agent(self):
         conn = db.get_connection()
-        query = """SELECT assigned_agent_id COUNT(status) AS agent_id
-            FROM missions
-            WHERE status = 'CANCELLED'
-            GROUP BY assigned_agent_id
-            ORDER BY COUNT(status) DESC
+        query = """SELECT * FROM agents 
+            ORDER BY completed_missions DESC
             LIMIT 1"""
         with conn.cursor(dictionary=True) as cursor:
             cursor.execute(query)
-            top_agent_id= cursor.fetchone()["agent_id"]
-        top_agent = agents_manager.get_agent_by_id(top_agent_id)
+            top_agent= cursor.fetchone()
         return top_agent
-
-
-missions_manager = MissionDB()
-
-mission = NewMission(title= "1",
-    description= "testing mission in project",
-    location= "london",
-    difficulty= 2,
-    importance= 10)
-
-print(missions_manager.update_mission_status(4, "IN_PROGRESS"))

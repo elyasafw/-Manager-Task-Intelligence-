@@ -4,6 +4,10 @@
 **מערכת ניהול משימות סוכנים מנוהלת בבסיס נתונים MySQL עם טבלאות:**  
 **1. agents**  
 **2. missions**  
+**המערכת רצה עם שרת FastAPI עם חלוקה ל 3 ראוטרים:**
+**1. agents_router**  
+**2. missions_router**  
+**3. report_router**
 
 **המערכת אחראית על ניהול חלוקת המשימות לפי רמת הסוכן עם ניהול מלא של עדכון סוכנים ומשימות שינויי סטטוס משימה ואינדיקציות מלאות בזמן אמת.**  
 
@@ -14,6 +18,14 @@ intelligence-task-manager/
 │   ├── db_connection.py
 │   ├── agent_db.py
 │   └── mission_db.py
+├── routes/
+│   ├── agent_routes.py
+│   ├── mission_routes.py
+│   └── report_routes.py
+├── logs/
+│   ├── logger_config.py
+│   └── app.log
+├── main.py
 ├── README.md
 ├── requirements.txt
 └── .gitignore
@@ -23,12 +35,12 @@ intelligence-task-manager/
 ### טבלת agents:  
 id | name | specialty | is_active | completed_missions | failed_missions | agent_rank
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-INT PK AUTO_INCREMENT | VARCHAR(50) | VARCHAR(50) | BOOLEAN DEFAULT TRUE | INT DEFAULT 0 | INT DEFAULT 0 | ENUM(Junior / Senior / Commander)  
+INT PK AUTO_INCREMENT | VARCHAR(50) | VARCHAR(50) | BOOLEAN DEFAULT TRUE | INT DEFAULT 0 | INT DEFAULT 0 | ENUM('Junior', 'Senior', 'Commander')  
 
 ### טבלת missions:  
 id | title | description | location | difficulty | importance | status | risk_level | assigned_agent_id
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-INT PK AUTO_INCREMENT | VARCHAR(100) | TEXT | VARCHAR(50) | INT CHECK(difficulty BETWEEN 1 AND 10) | INT CHECK(difficulty BETWEEN 1 AND 10) | VARCHAR(30) DEFAULT 'NEW' | VARCHAR(30) | INT DEFAULT NULL  
+INT PK AUTO_INCREMENT | VARCHAR(100) | TEXT | VARCHAR(50) | INT CHECK('difficulty' BETWEEN 1 AND 10) | INT CHECK('importance' BETWEEN 1 AND 10) | VARCHAR(30) DEFAULT 'NEW' | VARCHAR(30) | INT DEFAULT NULL  
 
 ## חוקי המערכת:  
 1.	שדה rank חייב להיות Junior / Senior / Commander — כל ערך אחר זורק שגיאה.
@@ -82,6 +94,8 @@ count_open_missions() | סופרת משימות פתוחות
 count_critical_missions() | סופרת משימות CRITICAL
 get_top_agent() | הסוכן עם completed_missions הגבוה ביותר  
 
+
+
 ## הוראות התקנה והרצה  
 
 ### התקנה:  
@@ -89,4 +103,13 @@ get_top_agent() | הסוכן עם completed_missions הגבוה ביותר
 ```bash
     docker run -d --name intelligence-mysql -e MYSQL_ROOT_PASSWORD=1234 \
     -e MYSQL_DATABASE=Intelligence_db -p 3306:3306 mysql:8.0
+```
+**התקנת סביבה וספריות מתאימות**  
+```bash
+    python -m venv .venv ;
+    pip install -r requirements.txt
+```
+**הרצה**
+```bash
+    uvicorn main:app
 ```

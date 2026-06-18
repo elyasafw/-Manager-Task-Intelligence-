@@ -1,5 +1,5 @@
-from db_connection import db
-from mission_db import missions_manager
+from .db_connection import db
+from .mission_db import missions_manager
 from logs.logger_config import logger
     
 

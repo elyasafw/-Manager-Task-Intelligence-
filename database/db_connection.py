@@ -1,11 +1,10 @@
 import mysql.connector
+from logs.logger_config import logger
 
 
 class  DB_connection:
     def __init__(self):
-        self.create_db()
-        self.connect()
-        self.create_tables()
+        self.conn = None
 
     def connect(self):
         self.conn = mysql.connector.connect(
@@ -15,6 +14,7 @@ class  DB_connection:
             database = "Intelligence_db",
             port = 3306
             )
+        logger.info("Connection to the database was successful")
 
     def get_connection(self):
         if self.conn == None or not self.conn.is_connected():
@@ -59,9 +59,13 @@ class  DB_connection:
         """
         with self.conn.cursor() as cursor:
             cursor.execute(query_agents_table)
-            print("Agents table ready")
+            logger.info("Agents table ready")
             cursor.execute(query_missions_table)
-            print("Missions table ready")
+            logger.info("Missions table ready")
+
+    def close_connection(self):
+        self.conn.close()
+        logger.info("The database was closed successfully")
 
 
 db = DB_connection()

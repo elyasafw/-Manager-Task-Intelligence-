@@ -54,12 +54,20 @@ def get_agent_by_id(id: int):
     agent = agents_manager.get_agent_by_id(id)
     if not agent:
         logger.error(f"Agent ID {id} not found")
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent ID {id} not found"
+            )
     logger.info(f"Getting details of agent ID: {id}")
     return agent
 
 @agent_router.put("/agents/{id}")
 def update_agent(id: int, update_data: UpdateAgent):
+    if not agents_manager.get_agent_by_id(id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent ID: {id} not found"
+            )
     update_agent = update_data.model_dump(exclude_none=True)
     if "agent_rank" in update_agent:
         if not validation_rank(update_agent):

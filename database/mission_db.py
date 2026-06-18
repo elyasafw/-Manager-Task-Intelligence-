@@ -1,4 +1,4 @@
-from db_connection import db
+from .db_connection import db
 from logs.logger_config import logger
 
 

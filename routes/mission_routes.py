@@ -56,7 +56,10 @@ def get_mission_by_id(id: int):
     mission = missions_manager.get_mission_by_id(id)
     if not mission:
         logger.error(f"Mission ID {id} not found")
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Mission ID {id} not found"
+            )
     logger.info(f"Getting details of mission ID: {id}")
     return mission
 

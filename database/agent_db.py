@@ -127,8 +127,11 @@ class AgentDB:
             }
         return agent_performance
 
-
+    def count_active_agents(self):
+        conn = db.get_connection()
+        with conn.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT * FROM agents WHERE is_active = TRUE")
+            all_active_agents = cursor.fetchall()
+            return all_active_agents
 
 agents_manager = AgentDB()
-
-agent = UpdateAgent(agent_rank="Junior")

@@ -11,42 +11,29 @@ def validation_difficulty_importance(data):
 
 
 def check_status_rules(status, mission, mission_id):
-    errors = {
-        1: f"Mission ID: {mission_id} not yet assigned or already in progress",
-        2: f"Mission ID: {mission_id} not yet in progress or cancelled",
-        3: f"Mission ID: {mission_id} already in progress / completed / failed"
-        }
     if status.upper() == "IN_PROGRESS":
         if mission["status"] !="ASSIGNED":
-            return errors[1]
+            return f"Mission ID: {mission_id} not yet assigned or already in progress"
     elif status.upper() in ["COMPLETED", "FAILED"]:
         if mission["status"] != "IN_PROGRESS":
-            return errors[2]
+            return f"Mission ID: {mission_id} not yet in progress or cancelled"
     elif status.upper() == "CANCELLED":
         if mission["status"] not in ["NEW", "ASSIGNED"]:
-            return errors[3]
-    else:
-        return "OK"
+            return f"Mission ID: {mission_id} already in progress / completed / failed"
+    return "OK"
 
 
-def check_assign_rules(agent, mission, open_missions):
-    errors = {
-        1: "A critical level mission can only be assigned to a Commander-level agent",
-        2: f"Agent ID: {agent["id"]} is not active",
-        3: f"Agent ID: {agent["id"]} holds maximum open missions (3)",
-        4: f"Mission ID: {mission["id"]} is already assigned to another agent"
-        }
-    if not  agent["is_active"]:
-        return errors[2]
-    elif len(open_missions) == 3:
-        return errors[3]
-    elif mission["risk_level"] == "CRITICAL":
-        if agent["agent_rank"] != "commander":
-            return errors[1] 
-    elif mission["status"] != "NEW":
-        return errors[4]
-    else:
-        return "OK"
+def check_assign_rules(mission, agent, open_missions):
+    if mission["status"] != "NEW":
+        return "Mission not available"
+    if not agent["is_active"]:
+        return f"Agent ID: {agent['id']} is not active"
+    if len(open_missions) >= 3:
+        return f"Agent ID: {agent['id']} has reached maximum missions"
+    if mission["risk_level"] == "CRITICAL":
+        if agent["agent_rank"].lower() != "commander":
+            return "Only Commander can handle critical missions"
+    return "OK"
 
 
 def calculate_risk_level(difficulty, importance):

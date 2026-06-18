@@ -175,55 +175,65 @@ def fail_mission(agent_id:int, id: int, m_status: str):
 @mission_router.put("/missions/{id}/cancel")
 def cancel_mission(id: int, m_status: str):
     if m_status.upper()  != "CANCELLED":
+        logger.error("Mission cancel status must be: 'CANCELLED'")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Mission cancel status must be: 'CANCELLED'"
             )
     mission = missions_manager.get_mission_by_id(id)
     if not mission:
+        logger.error(f"Mission ID: {id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Mission ID: {id} not found"
             )
     check_rules = check_status_rules(m_status, mission, id)
     if not check_rules == "OK":
+        logger.error(f"Canceled mission failed: {check_rules}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=check_rules
             )
     cancel_update = missions_manager.update_mission_status(id, m_status)
     if not cancel_update:
+        logger.error(f"Change mission Status ID: {id} failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Change mission Status ID: {id} failed"
             )
+    logger.info(f"Mission Status ID: {id} Updated 'CANCELLED'")
     return {"message": f"Mission Status ID: {id} Updated 'CANCELLED' Successfully"}
 
 @mission_router.put("/missions/{id}/assign/{agent_id}")
 def assign_mission_to_agent(id: int, agent_id: int):
-    open_missions = missions_manager.get_open_missions_by_agent(agent_id)
     agent = agents_manager.get_agent_by_id(agent_id)
     if not agent:
+        logger.error(f"Agent ID: {agent_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail= f"Agent ID: {agent_id} not found"
+            detail=f"Agent ID: {agent_id} not found"
             )
     mission = missions_manager.get_mission_by_id(id)
     if not mission:
+        logger.error(f"Mission ID: {id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail= f"Mission ID: {id} not found"
+            detail=f"Mission ID: {id} not found"
             )
-    check_rules = check_assign_rules(agent, mission, open_missions)
+    open_missions = missions_manager.get_open_missions_by_agent(agent_id)
+    check_rules = check_assign_rules(mission, agent, open_missions)
     if check_rules != "OK":
+        logger.error(f"Assign rules failed: {check_rules}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=check_rules
             )
     is_assign = missions_manager.assign_mission(id, agent_id)
     if not is_assign:
+        logger.error(f"Assignment failed: mission {id}, agent {agent_id}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Assignment of mission ID: {id} to agent ID: {agent_id} failed"
             )
-    return {"message": f"Mission ID: {id} was successfully assigned to Agent ID: {agent_id}"}
+    logger.info(f"Mission ID: {id} successfully assigned to Agent ID: {agent_id}")
+    return {"message": f"Mission ID: {id} successfully assigned to Agent ID: {agent_id}"}

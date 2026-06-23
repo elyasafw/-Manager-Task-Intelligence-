@@ -28,11 +28,11 @@ def create_new_mission(new_mission: NewMission):
            )
     risk_level = calculate_risk_level(new_mission["difficulty"], new_mission["importance"])
     values = [
-        new_mission["title"],
-        new_mission["description"],
-        new_mission["location"],
-        new_mission["difficulty"],
-        new_mission["importance"],
+        mission["title"],
+        mission["description"],
+        mission["location"],
+        mission["difficulty"],
+        mission["importance"],
         risk_level
         ]
     is_create = missions_manager.create_mission(values)

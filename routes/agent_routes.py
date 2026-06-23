@@ -29,9 +29,9 @@ def create_new_agent(new_agent: NewAgent):
            detail="The 'agent_rank' field must only be: Junior / Senior / Commander"
            )
     values = [
-        new_agent["name"],
-        new_agent["specialty"],
-        new_agent["agent_rank"]
+        agent["name"],
+        agent["specialty"],
+        agent["agent_rank"]
         ]
     is_create = agents_manager.create_agent(values)
     if not is_create:
